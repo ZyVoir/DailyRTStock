@@ -47,8 +47,8 @@ for ticker in tickers:
 
 #if remote
 
-url : str = os.environ("DB_URL")
-key : str = os.environ("DB_KEY")
+url : str = os.environ["DB_URL"]
+key : str = os.environ["DB_KEY"]
 
 # if local
 # load_dotenv()
