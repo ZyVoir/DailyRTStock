@@ -20,7 +20,7 @@ allData = []
 
 for ticker in tickers:
     tickerData = yf.Ticker(ticker)
-    tickerData = tickerData.history(period=period, interval=interval)
+    tickerData = tickerData.history(period=period, interval=interval, auto_adjust=False)
     tickerData.reset_index(inplace=True)
 
     if not tickerData.empty:
