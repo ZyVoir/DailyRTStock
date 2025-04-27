@@ -30,7 +30,9 @@ for ticker in tickers:
         today_data["date"] = datetime.now().isoformat()
         del today_data["Dividends"]
         del today_data["Stock Splits"]
-   
+        
+        today_data.pop("Adj Close", None)
+
         today_data["open"] = today_data.pop("Open")
         today_data["high"] = today_data.pop("High")
         today_data["low"] = today_data.pop("Low")
@@ -54,7 +56,6 @@ key : str = os.environ["DB_KEY"]
 # load_dotenv()
 # url: str = os.getenv("DB_URL")
 # key: str = os.getenv("DB_KEY")
-
 supabase = create_client(url, key)
 response = (
     supabase.table("StockData")
