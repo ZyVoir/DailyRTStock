@@ -1,14 +1,11 @@
-name: afterDailyRun
+name: dailyRun
 
 on:
-  workflow_run:
-    workflows: ["dailyRun"]  # Must match the 'name' in daily-run.yaml
-    types:
-      - completed
+  schedule:
+    - cron: '59 16 * * 0'  # 23.59 PM Indonesia time is 16.59 AM UTC
 
 jobs:
-  run-after:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Only run if dailyRun succeeds
+  run-script:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,16 +15,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10.11'
+          python-version: '3.10.11'  # or whatever version you need
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run script2.py
+      - name: Run the script
         env:
+          # Auto-load variables from .env manually if needed
           DB_URL: ${{ secrets.DB_URL }}
           DB_KEY: ${{ secrets.DB_KEY }}
         run: |
-          python calculateAccuracy.py
+          python inferenceScript.py
