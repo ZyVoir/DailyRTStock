@@ -1,2 +1,4 @@
 yfinance
 supabase
+joblib
+tensorflow
