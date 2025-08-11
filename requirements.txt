@@ -2,3 +2,4 @@ yfinance
 supabase
 joblib
 tensorflow
+scikit-learn

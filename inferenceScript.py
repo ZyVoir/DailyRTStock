@@ -2,9 +2,27 @@ import os
 import numpy as np
 import pandas as pd
 import joblib
-from datetime import timedelta
+from datetime import timedelta, datetime
 from keras.models import load_model
 from supabase import create_client, Client
+from dotenv import load_dotenv
+
+import warnings
+from sklearn.exceptions import InconsistentVersionWarning
+warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
+
+
+# If remote
+url: str = os.environ["DB_URL"]
+key: str = os.environ["DB_KEY"]
+
+#if local  
+# load_dotenv()
+# url: str = os.getenv("DB_URL")
+# key: str = os.getenv("DB_KEY")
+
+# Establish connection to Supabase
+supabase: Client = create_client(url, key)
 
 # Load LSTM model
 model = load_model('model/LSTM.h5')
@@ -22,33 +40,24 @@ tickers = [
 ]
 
 def load_data_from_supabase(supabase: Client, tickers: list):
-    """
-    Load the latest 15 closing prices for each ticker from Supabase
     
-    Args:
-        supabase: Supabase client
-        tickers: List of ticker symbols
-    
-    Returns:
-        dict: Dictionary with ticker as key and DataFrame as value
-    """
     all_ticker_data = {}
     
     for ticker in tickers:
         try:
-            # Query the latest 15 records for each ticker, ordered by date descending
+            # Query the latest 20 records for each ticker, ordered by date descending
             response = supabase.table("StockData") \
                 .select("*") \
-                .eq("Ticker", ticker) \
-                .order("Date", desc=True) \
-                .limit(15) \
+                .eq("ticker", ticker) \
+                .order("date", desc=True) \
+                .limit(20) \
                 .execute()
             
             if response.data:
                 # Convert to DataFrame and reverse to get chronological order
                 df = pd.DataFrame(response.data)
-                df = df.sort_values('Date').reset_index(drop=True)
-                df['Date'] = pd.to_datetime(df['Date'])
+                df = df.sort_values('date').reset_index(drop=True)
+                df['date'] = pd.to_datetime(df['date'])
                 all_ticker_data[ticker] = df
                 print(f"Loaded {len(df)} records for {ticker}")
             else:
@@ -60,46 +69,27 @@ def load_data_from_supabase(supabase: Client, tickers: list):
     
     return all_ticker_data
 
-def forecast_lstm(model, ticker, scaler, recent_data, seq_len=15, steps=1):
-    """
-    Forecasting function for a specific ticker
+def forecast_lstm(model, ticker, scaler, recent_data, seq_len=15, steps=5):
     
-    Args:
-        model: Loaded LSTM model
-        ticker: Stock ticker symbol
-        scaler: Loaded scaler for the specific ticker
-        recent_data: Recent stock data (should contain ['Open', 'High', 'Low', 'Close'])
-        seq_len: Sequence length for LSTM input (default: 15)
-        steps: Number of prediction steps (default: 1)
+    ohlc_data = recent_data[['open', 'high', 'low', 'close']].values
     
-    Returns:
-        predictions: List of predicted prices
-        prediction_dates: List of prediction dates
-    """
-    
-    # Extract OHLC data
-    ohlc_data = recent_data[['Open', 'High', 'Low', 'Close']].values[-(seq_len + steps - 1):]
-    
-    if len(ohlc_data) < seq_len + steps - 1:
-        raise ValueError(f"Insufficient data for forecasting {ticker}. Need at least {seq_len + steps - 1} rows.")
+    if len(ohlc_data) < seq_len + steps:
+        raise ValueError(f"Insufficient data for forecasting {ticker}")
     
     predictions = []
     prediction_dates = []
-    last_date = recent_data['Date'].iloc[-1]
+    last_date = recent_data['date'].iloc[-1]
     
     for i in range(steps):
         start = i
         end = i + seq_len
         input_seq = ohlc_data[start:end]
         
-        # Scale the input
         scaled_input = scaler.transform(input_seq)
         model_input = scaled_input.reshape(1, seq_len, 4)
         
-        # Make prediction
         pred_scaled = model.predict(model_input, verbose=0)
         
-        # Inverse transform to get actual price
         dummy = np.hstack([np.zeros((1, 3)), pred_scaled])
         pred_unscaled = scaler.inverse_transform(dummy)[0, 3]
         
@@ -109,33 +99,54 @@ def forecast_lstm(model, ticker, scaler, recent_data, seq_len=15, steps=1):
     
     return predictions, prediction_dates
 
+def clean_results(all_results):
+
+    cleaned_records = []
+    
+    for ticker, data in all_results.items():
+        predictions = data['predictions']
+        dates = data['dates']
+        
+        for i, (prediction, date) in enumerate(zip(predictions, dates)):
+            record = {
+                'ticker': ticker,
+                'date': date.strftime('%Y-%m-%d'),  
+                'closePrediction': float(prediction),  
+                'created_at': datetime.now().isoformat()  
+            }
+            cleaned_records.append(record)
+    
+    return cleaned_records
+
+def post_results_to_supabase(all_results):
+
+    try:
+        response = supabase.table("StockPrediction").insert(all_results).execute()
+        
+        if response.data:
+            print(f"Successfully inserted {len(all_results)} prediction records to Supabase")
+        else:
+            print("Failed to insert records to Supabase")
+            
+    except Exception as e:
+        print(f"Error posting results to Supabase: {str(e)}")
+
 def run_inference():
-    """
-    Main inference function that processes all tickers
-    """
+    
     all_results = {}
-    url: str = os.environ["DB_URL"]
-    key: str = os.environ["DB_KEY"]
+   
     
-    # Establish connection to Supabase
-    supabase: Client = create_client(url, key)
-    
-    # Load data from Supabase
     df_all = load_data_from_supabase(supabase, tickers)
+    
 
     for ticker in tickers:
         try:
-            # Load scaler for the specific ticker
             scaler = joblib.load(os.path.join('scalers', f"{ticker}.pkl"))
             
-            # Filter data for current ticker from Supabase data
             if ticker in df_all:
                 recent_data = df_all[ticker]
-                
-                # Make predictions
                 predictions, prediction_dates = forecast_lstm(model, ticker, scaler, recent_data)
                 
-                # Store results
                 all_results[ticker] = {
                     'predictions': predictions,
                     'dates': prediction_dates
@@ -149,10 +160,10 @@ def run_inference():
             print(f"Error processing {ticker}: {str(e)}")
             continue
     
-    #TODO: Post results to Supabase
-    # post_results_to_supabase(all_results)
-    
     return all_results
 
 if __name__ == "__main__":
     results = run_inference()
+    cleaned_results = clean_results(results)
+    # print(cleaned_results)
+    post_results_to_supabase(cleaned_results)
