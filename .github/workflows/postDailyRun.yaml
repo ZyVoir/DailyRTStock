@@ -1,4 +1,4 @@
-name: afterDailyRun
+name: postDailyRun
 
 on:
   workflow_run:
