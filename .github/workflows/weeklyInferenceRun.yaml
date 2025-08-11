@@ -2,7 +2,8 @@ name: dailyRun
 
 on:
   schedule:
-    - cron: '59 16 * * 0'  # 23.59 PM Indonesia time is 16.59 AM UTC
+    - cron: "59 16 * * 0" # 23.59 PM Indonesia time is 16.59 AM UTC
+  workflow_dispatch: # Allow manual trigger too
 
 jobs:
   run-script:
@@ -15,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10.11'  # or whatever version you need
+          python-version: "3.10.11" # or whatever version you need
 
       - name: Install dependencies
         run: |

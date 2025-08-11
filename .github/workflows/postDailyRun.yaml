@@ -2,13 +2,14 @@ name: afterDailyRun
 
 on:
   workflow_run:
-    workflows: ["dailyRun"]  # Must match the 'name' in daily-run.yaml
+    workflows: ["dailyRun"] # Must match the 'name' in daily-run.yaml
     types:
       - completed
+  workflow_dispatch: # Allow manual trigger too
 
 jobs:
   run-after:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Only run if dailyRun succeeds
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} # Only run if dailyRun succeeds
     runs-on: ubuntu-latest
 
     steps:
@@ -18,7 +19,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10.11'
+          python-version: "3.10.11"
 
       - name: Install dependencies
         run: |
