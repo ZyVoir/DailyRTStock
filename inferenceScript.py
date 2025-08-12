@@ -4,25 +4,14 @@ import pandas as pd
 import joblib
 from datetime import timedelta, datetime
 from keras.models import load_model
-from supabase import create_client, Client
-from dotenv import load_dotenv
+import SupabaseManager
 
 import warnings
 from sklearn.exceptions import InconsistentVersionWarning
 warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 
-
-# If remote
-url: str = os.environ["DB_URL"]
-key: str = os.environ["DB_KEY"]
-
-#if local  
-# load_dotenv()
-# url: str = os.getenv("DB_URL")
-# key: str = os.getenv("DB_KEY")
-
-# Establish connection to Supabase
-supabase: Client = create_client(url, key)
+isProd = True
+supabase = SupabaseManager.get_supabase_client(isProd = isProd)
 
 # Load LSTM model
 model = load_model('model/LSTM.h5')
