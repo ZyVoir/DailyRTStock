@@ -1,4 +1,4 @@
-name: dailyRun
+name: reInitDB
 
 on:
   workflow_dispatch: # Manual Trigger
