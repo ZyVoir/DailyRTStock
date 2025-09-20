@@ -1,20 +1,10 @@
 import yfinance as yf
 from datetime import datetime
 import os
-from SupabaseManager import get_supabase_client
+from SupabaseManager import get_supabase_client, get_ticker_list
 
 
-tickers = [
-    "^JKSE","ACES.JK", "ADMR.JK", "ADRO.JK", "AKRA.JK", "AMMN.JK",
-    "AMRT.JK", "ANTM.JK", "ARTO.JK", "ASII.JK", "BBCA.JK",
-    "BBNI.JK", "BBRI.JK", "BBTN.JK", "BMRI.JK", "BRIS.JK",
-    "BRPT.JK", "CPIN.JK", "CTRA.JK", "ESSA.JK", "EXCL.JK",
-    "GOTO.JK", "ICBP.JK", "INCO.JK", "INDF.JK", "INKP.JK",
-    "ISAT.JK", "ITMG.JK", "JPFA.JK", "JSMR.JK", "KLBF.JK",
-    "MAPA.JK", "MAPI.JK", "MBMA.JK", "MDKA.JK", "MEDC.JK",
-    "PGAS.JK", "PGEO.JK", "PTBA.JK", "SIDO.JK", "SMGR.JK",
-    "SMRA.JK", "TLKM.JK", "TOWR.JK", "UNTR.JK", "UNVR.JK"
-]
+tickers = get_ticker_list()
 
 period = "1d"
 interval = "1d"
