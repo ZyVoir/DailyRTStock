@@ -1,7 +1,7 @@
 import yfinance as yf
 from datetime import datetime
 import os
-import SupabaseManager
+from SupabaseManager import get_supabase_client
 
 
 tickers = [
@@ -49,10 +49,9 @@ for ticker in tickers:
         print(f"No data available for {ticker}")
 
 isProd = True
-supabase = SupabaseManager.get_supabase_client(isProd = isProd) 
+supabase = get_supabase_client(isProd = isProd) 
 response = (
     supabase.table("StockData")
     .insert(allData)
     .execute()
 )
-print(response)

@@ -4,14 +4,14 @@ import pandas as pd
 import joblib
 from datetime import timedelta, datetime
 from keras.models import load_model
-import SupabaseManager
+from SupabaseManager import get_supabase_client
 
 import warnings
 from sklearn.exceptions import InconsistentVersionWarning
 warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 
 isProd = True
-supabase = SupabaseManager.get_supabase_client(isProd = isProd)
+supabase = get_supabase_client(isProd = isProd)
 
 # Load LSTM model
 model = load_model('model/LSTM.h5')
@@ -28,7 +28,7 @@ tickers = [
     "SMRA.JK", "TLKM.JK", "TOWR.JK", "UNTR.JK", "UNVR.JK"
 ]
 
-def load_data_from_supabase(supabase: Client, tickers: list):
+def load_data_from_supabase(supabase, tickers: list):
     
     all_ticker_data = {}
     

@@ -1,8 +1,8 @@
 import os
 import numpy as np
-import SupabaseManager
+from SupabaseManager import get_supabase_client
 
 isProd = False
-supabase = SupabaseManager.get_supabase_client(isProd= isProd)
+supabase = get_supabase_client(isProd= isProd)
 
-print("test")
+print(f"{supabase}")
