@@ -5,6 +5,7 @@ import joblib
 from datetime import timedelta, datetime
 from keras.models import load_model
 from SupabaseManager import get_supabase_client, get_ticker_list
+from pandas.tseries.offsets import BDay
 
 import warnings
 from sklearn.exceptions import InconsistentVersionWarning
@@ -73,7 +74,7 @@ def forecast_lstm(model, ticker, scaler, recent_data, seq_len=15, steps=5):
         pred_unscaled = scaler.inverse_transform(dummy)[0, 3]
         
         predictions.append(pred_unscaled)
-        pred_date = last_date + timedelta(days=i + 1)
+        pred_date = last_date + BDay(i + 1) 
         prediction_dates.append(pred_date)
     
     return predictions, prediction_dates
