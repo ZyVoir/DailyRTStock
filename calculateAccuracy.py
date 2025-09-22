@@ -3,7 +3,7 @@ import numpy as np
 from SupabaseManager import get_supabase_client
 from datetime import date
 
-isProd = False
+isProd = True
 supabase = get_supabase_client(isProd= isProd)
 
 def fetch_data_for_date(supabase, date: str):
