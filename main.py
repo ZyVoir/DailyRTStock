@@ -1,8 +1,7 @@
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from SupabaseManager import get_supabase_client, get_ticker_list
-
 
 tickers = get_ticker_list()
 
@@ -20,7 +19,8 @@ for ticker in tickers:
         today_data = tickerData.iloc[-1].to_dict()
         del today_data["Date"]
         today_data["ticker"] = ticker
-        today_data["date"] = datetime.now().isoformat()
+        # today_data["date"] = datetime.now().isoformat()
+        today_data["date"] = (datetime.now() - timedelta(days=1)).isoformat()
         del today_data["Dividends"]
         del today_data["Stock Splits"]
         

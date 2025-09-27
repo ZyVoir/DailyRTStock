@@ -12,7 +12,8 @@ def fetch_data_for_date(supabase, date: str):
     return result.data
 
 if __name__ == "__main__":
-    curr_date = date.today()
+    # curr_date = date.today()
+    curr_date = "2025-9-26"
     formatted_date = curr_date.strftime("%Y-%m-%d")
     data = fetch_data_for_date(supabase, formatted_date)
     
