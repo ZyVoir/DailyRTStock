@@ -2,7 +2,7 @@ name: dailyRun
 
 on:
   schedule:
-    - cron: "30 9 * * 1-5" # 4 PM Indonesia time is 9 AM UTC
+    - cron: "0 10 * * 1-5" # 4.30 PM Indonesia time is 9 AM UTC
   workflow_dispatch: # Allow manual trigger too
 
 jobs:
