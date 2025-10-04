@@ -6,7 +6,7 @@ from SupabaseManager import get_supabase_client, get_ticker_list
 
 tickers = get_ticker_list()
 
-start_date = "2025-01-01"
+start_date = "2025-09-24"
 
 curr_date = date.today()
 formatted_date = curr_date.strftime("%Y-%m-%d")
